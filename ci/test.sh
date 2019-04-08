@@ -1,8 +1,10 @@
 #!/bin/sh
 
+ls -la
+mv ../cache/node_modules source
+
 pushd source/
 
-mv ../cache/node_modules source
 npm run test
 
 popd
