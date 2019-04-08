@@ -4,7 +4,7 @@ resource_types:
     type: docker-image
     source: 
       repository: ymedlop/npm-cache-resource
-      tag: "4"
+      tag: "9"
 resources:
   - name: source
     type: git
@@ -70,16 +70,16 @@ jobs:
     plan:
       - aggregate:
         - get: source
-          passed: [deploy-to-dev]
           trigger: true
+          passed: [deploy-to-dev]
       - task: integration-test
         file: source/ci/integration-test.yml
   - name: deploy-to-prod
     build_logs_to_retain: 30
     plan:
       - get: source
-        passed: [integration-test]
         trigger: true
+        passed: [integration-test]
       - put: cf-prod
         params:
           manifest: source/ci/manifest-prod.yml
