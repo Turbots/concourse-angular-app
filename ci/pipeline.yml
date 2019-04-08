@@ -60,7 +60,7 @@ jobs:
     plan:
       - get: source
         trigger: true
-        passed: [build]
+        passed: [build,test]
       - put: cf-dev
         params:
           manifest: source/ci/manifest-dev.yml
