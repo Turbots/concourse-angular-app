@@ -1,10 +1,7 @@
 #!/bin/sh
 
-ls -la
 mv ../cache/node_modules source
 
-pushd source/
+cd source
 
 npm run test
-
-popd
