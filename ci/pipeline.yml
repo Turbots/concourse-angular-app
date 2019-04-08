@@ -1,0 +1,95 @@
+---
+resource_types:
+  - name: npm-cache
+    type: docker-image
+    source: 
+      repository: ymedlop/npm-cache-resource
+      tag: "4"
+resources:
+  - name: source
+    type: git
+    source: &source
+      uri: https://github.com/Turbots/concourse-angular-app.git
+      branch: master
+  - name: npm-cache
+    type: npm-cache
+    source:
+      <<: *source
+  - name: cf-dev
+    type: cf
+    source:
+      api: https://api.run.pivotal.io
+      username: ((CF_USER))
+      password: ((CF_PASSWORD))
+      organization: OrdinaBelgiumNV
+      space: development
+  - name: cf-prod
+    type: cf
+    source:
+      api: https://api.run.pivotal.io
+      username: ((CF_USER))
+      password: ((CF_PASSWORD))
+      organization: OrdinaBelgiumNV
+      space: production
+jobs:
+  - name: cache
+    plan:
+      - get: source
+        trigger: true
+      - get: npm-cache
+  - name: test
+    plan:
+      - get: source
+        trigger: true
+        passed: [cache]
+      - get: npm-cache
+        passed: [cache]
+      - task: run build
+        file: source/ci/test.yml
+  - name: build
+    plan:
+      - get: source
+        trigger: true
+        passed: [cache]
+      - get: npm-cache
+        passed: [cache]
+      - task: run build
+        file: source/ci/build.yml
+  - name: deploy-to-dev
+    build_logs_to_retain: 30
+    plan:
+      - get: source
+        trigger: true
+        passed: [build]
+      - put: cf-dev
+        params:
+          manifest: source/ci/manifest-dev.yml
+          path: artifact/dist
+  - name: integration-test
+    build_logs_to_retain: 5
+    plan:
+      - aggregate:
+        - get: source
+          passed: [deploy-to-dev]
+          trigger: true
+      - task: integration-test
+        file: source/ci/integration-test.yml
+  - name: deploy-to-prod
+    build_logs_to_retain: 30
+    plan:
+      - get: source
+        passed: [integration-test]
+        trigger: true
+      - put: cf-prod
+        params:
+          manifest: source/ci/manifest-prod.yml
+          path: artifact/dist
+groups:
+  - name: concourse-angular-app
+    jobs:
+      - cache
+      - test
+      - build
+      - deploy-to-dev
+      - integration-test
+      - deploy-to-prod

@@ -1,0 +1,5 @@
+---
+applications:
+  - name: concourse-angular
+    buildpacks:
+      - https://github.com/cloudfoundry/staticfile-buildpack.git
