@@ -1,6 +1,6 @@
 #!/bin/sh
 
-mv ../cache/node_modules source
+mv cache/node_modules source
 
 cd source
 
